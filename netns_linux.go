@@ -55,19 +55,18 @@ func NewNamed(name string) (NsHandle, error) {
 		}
 	}
 
+	namedPath := path.Join(bindMountPath, name)
+
+	f, err := os.OpenFile(namedPath, os.O_RDONLY|os.O_CREATE|os.O_EXCL, 0)
+	if err != nil {
+		return None(), err
+	}
+	f.Close()
+
 	newNs, err := New()
 	if err != nil {
 		return None(), err
 	}
-
-	namedPath := path.Join(bindMountPath, name)
-
-	f, err := os.OpenFile(namedPath, os.O_CREATE|os.O_EXCL, 0o444)
-	if err != nil {
-		newNs.Close()
-		return None(), err
-	}
-	f.Close()
 
 	nsPath := fmt.Sprintf("/proc/%d/task/%d/ns/net", os.Getpid(), unix.Gettid())
 	err = unix.Mount(nsPath, namedPath, "bind", unix.MS_BIND, "")

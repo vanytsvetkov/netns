@@ -39,6 +39,27 @@ func TestGetNewSetDelete(t *testing.T) {
 	}
 }
 
+func TestNewDuplicate(t *testing.T) {
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
+	nsname := "0xbadbeef"
+	newns, err := NewNamed(nsname)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = NewNamed(nsname)
+	if err == nil {
+		t.Fatal("Duplicate ns shouldn't exists")
+	}
+	if err = newns.Close(); err != nil {
+		t.Error("Failed to close ns", err)
+	}
+	if err = DeleteNamed(nsname); err != nil {
+		t.Error("Failed to delete ns", err)
+	}
+}
+
 func TestNone(t *testing.T) {
 	ns := None()
 	if ns.IsOpen() {
